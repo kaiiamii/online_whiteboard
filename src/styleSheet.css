@@ -1,0 +1,15 @@
+﻿.signButton {
+    width: 10;
+    height: 20;
+    borderRadius: 4;
+    cursor: "pointer";
+    display: "flex";
+    alignItems: "center";
+    justifyContent: "center";
+    fontWeight: "bold";
+}
+
+.signButton:hover {
+    background-color: rgba(253, 118, 0,0.1);
+    border-color: #FFF;
+}
