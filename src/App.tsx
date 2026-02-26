@@ -1,54 +1,17 @@
 ﻿import React, { useRef, useState } from "react";
-import { Stage, Layer, Group, Rect, Text, Circle } from "react-konva";
+import { Group, Layer, Rect, Stage, Text } from "react-konva";
 import "./styleSheet.css";
-import { FaMinus, FaPlus } from "react-icons/fa6";
-
-type Note = { id: string; x: number; y: number; text: string };
-
-const GRID_SIZE = 30;
-
-const VirtualGrid = ({
-    scale,
-    offsetX,
-    offsetY,
-}: {
-    scale: number;
-    offsetX: number;
-    offsetY: number;
-}) => {
-    const dots: JSX.Element[] = [];
-
-    const startX = Math.floor(-offsetX / (GRID_SIZE * scale)) * GRID_SIZE;
-    const endX = Math.ceil((window.innerWidth - offsetX) / (GRID_SIZE * scale)) * GRID_SIZE;
-    const startY = Math.floor(-offsetY / (GRID_SIZE * scale)) * GRID_SIZE;
-    const endY = Math.ceil((window.innerHeight - offsetY) / (GRID_SIZE * scale)) * GRID_SIZE;
-
-    for (let x = startX; x <= endX; x += GRID_SIZE) {
-        for (let y = startY; y <= endY; y += GRID_SIZE) {
-            dots.push(<Circle key={`${x}-${y}`} x={x} y={y} radius={1 / scale} fill="#ccc" />);
-        }
-    }
-
-    return <>{dots}</>;
-
-};
-
-const scalePanelStyle: React.CSSProperties = {
-    height: 28,
-    position: "fixed",
-    right: 20,
-    bottom: 20,
-    background: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 8,
-    padding: "8px 12px",
-    display: "flex",
-    alignItems: "center",
-    gap: 0,
-    fontFamily: "Roboto, sans-serif",
-    fontSize: 16,
-    zIndex: 1000,
-    boxShadow: "0 0 12px rgba(0,0,0,0.2)",
-};
+import { LuMousePointer2, LuPencil, LuFrame, LuShapes } from "react-icons/lu";
+import { BiSticker } from "react-icons/bi";
+import { PiHandPointingBold } from "react-icons/pi";
+import { TbArrowGuide } from "react-icons/tb";
+import { BsChatText } from "react-icons/bs";
+import { IoText } from "react-icons/io5";
+import { RiMindMap } from "react-icons/ri";
+import { AiFillPlusCircle } from "react-icons/ai";
+import { Note } from "./types";
+import VirtualGrid from "./components/dotGrid";
+import ScalePanel from "./components/scalePanel";
 
 
 function App() {
@@ -73,17 +36,91 @@ function App() {
         setNotes((prev) => prev.map((note) => (note.id === id ? { ...note, x, y } : note)));
     };
 
-    const snapToGrid = (pos: number) => Math.round(pos / GRID_SIZE) * GRID_SIZE;
-
+    const [hoveredMap, setHoveredMap] = useState(false);
+    const [hoveredMinus, setHoveredMinus] = useState(false);
+    const [hoveredPlus, setHoveredPlus] = useState(false);
+    const [hoveredQues, setHoveredQues] = useState(false);
+    const timeoutRef = useRef<number | null>(null);
+    const handleMouseEnterMap = () => {
+        timeoutRef.current = window.setTimeout(() => {
+            setHoveredMap(true);
+        }, 500);
+    };
+    const handleMouseLeaveMap = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setHoveredMap(false);
+    };
+    const handleMouseEnterMinus = () => {
+        timeoutRef.current = window.setTimeout(() => {
+            setHoveredMinus(true);
+        }, 500);
+    };
+    const handleMouseLeaveMinus = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setHoveredMinus(false);
+    };
+    const handleMouseEnterPlus = () => {
+        timeoutRef.current = window.setTimeout(() => {
+            setHoveredPlus(true);
+        }, 500);
+    };
+    const handleMouseLeavePlus = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setHoveredPlus(false);
+    };
+    const handleMouseEnterQues = () => {
+        timeoutRef.current = window.setTimeout(() => {
+            setHoveredQues(true);
+        }, 500);
+    };
+    const handleMouseLeaveQues = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setHoveredQues(false);
+    };
     return (
         <div>
-            <button onClick={addNote}>Добавить карточку</button>
-            <div style={scalePanelStyle}>
-                <div style={{ width: 1, background: "#DDD", height: "85%" }}></div>
-                <button className="signButton" onClick={zoomOut}><FaMinus size={13}></FaMinus></button>
-                <span>{Math.round(scale * 100)}%</span>
-                <button className="signButton" onClick={zoomIn}><FaPlus size={13}></FaPlus></button>
-                <div style={{ width: 1, background: "#DDD", height: "85%"}}></div>
+            <ScalePanel scale={scale} zoomIn={zoomIn} zoomOut={zoomOut}></ScalePanel>
+            <div className="toolsPanel">
+                <div className="tooltipsRight">
+                    <span className={`tooltip-text ${hoveredMap ? "show" : ""}`}>Обзор</span>
+                    <span className={`tooltip-text ${hoveredMinus ? "show" : ""}`} style={{ left: "93px", width: 50 }}>Меньше</span>
+                    <span className={`tooltip-text ${hoveredPlus ? "show" : ""}`} style={{ left: "185px", width: 50 }}>Больше</span>
+                    <span className={`tooltip-text ${hoveredQues ? "show" : ""}`} style={{ left: "243px", width: 50 }}>Помощь</span>
+                </div>
+                <div className="toolsPanelStyle">
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterMap} onMouseLeave={handleMouseLeaveMap}><PiHandPointingBold style={{ width: "90%", height: "90%"}} ></PiHandPointingBold></button>
+                    <button className="toolButton" onClick={zoomOut}
+                        onMouseEnter={handleMouseEnterMinus} onMouseLeave={handleMouseLeaveMinus}><LuMousePointer2 style={{ width: "100%", height: "100%" }}></LuMousePointer2></button>
+                    <div style={{ height: 1, background: "#DDD", width: "85%", margin: "0 auto", marginTop: "5px"}}></div>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><LuFrame style={{ width: "100%", height: "100%" }}></LuFrame></button>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><TbArrowGuide style={{ width: "90%", height: "90%" }}></TbArrowGuide></button>
+                    <button className="toolButton" onClick={addNote}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><BiSticker style={{ width: "90%", height: "90%" }}></BiSticker></button>
+                    <button className="toolButton" onClick={zoomOut}
+                        onMouseEnter={handleMouseEnterMinus} onMouseLeave={handleMouseLeaveMinus}><LuPencil style={{ width: "100%", height: "100%" }}></LuPencil></button>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><LuShapes style={{ width: "100%", height: "100%" }}></LuShapes></button>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><IoText style={{ width: "100%", height: "100%" }}></IoText></button>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><BsChatText style={{ width: "100%", height: "100%" }} ></BsChatText></button>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterPlus} onMouseLeave={handleMouseLeavePlus}><RiMindMap style={{ width: "100%", height: "100%" }}></RiMindMap></button>
+                    <div style={{ width: "85%", background: "#DDD", height: 1, margin: "0 auto", marginBottom: "5px" }}></div>
+                    <button className="toolButton" onClick={zoomIn}
+                        onMouseEnter={handleMouseEnterQues} onMouseLeave={handleMouseLeaveQues}><AiFillPlusCircle style={{ width: "100%", height: "100%" }}></AiFillPlusCircle></button>
+                </div>
             </div>
             <Stage
                 width={window.innerWidth}
